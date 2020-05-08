@@ -1,6 +1,6 @@
 /************************************ 
- * truckBeaconLightModule v0.0.1
- * Date: 08.05.2020 | 21-07-10
+ * truckBeaconLightModule v0.0.2
+ * Date: 08.05.2020 | 22-50-10
  * by M.Egner
  * Beacon Light Module for Truck Light and function module
  ************************************/
@@ -61,11 +61,9 @@
  ************************************/
 bool pulseStatus = false;
 unsigned long StatusPreviousMillis = 0;
-unsigned long blinkOnTime = 0;
 
 //Functions
 bool controllerStatus(bool);
-int blink(unsigned int);
 
 
 void setup() {
@@ -104,17 +102,4 @@ bool controllerStatus(bool errorFlag) {
     }
     return pulseStatus;                 //Flash if everything is OK
   }
-}
-
-int blink(unsigned int blinkTimeMillis) {
-  if((blinkOnTime == 0) || (blinkOnTime > millis())){ //Reset blinkOnTime on startup and on overflow.
-    blinkOnTime = millis();
-  }
-  unsigned long blinkTime = millis() - blinkOnTime;
-  if(blinkTime%blinkTimeMillis >= blinkTimeMillis/2){ //ON/OFF Interval at half of Time.
-    return 0;
-  } else {
-    return 1;
-  }
-
 }
