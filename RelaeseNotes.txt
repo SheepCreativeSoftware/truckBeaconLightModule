@@ -1,5 +1,8 @@
 Release Notes
 
+v0.0.2 08.05.2020
+- Remove blink function, cause not needed
+
 v0.0.1 08.05.2020
 - Initial version
 - Copy from truckLightAndFunction
