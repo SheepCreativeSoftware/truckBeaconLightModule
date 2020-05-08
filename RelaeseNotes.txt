@@ -1,0 +1,7 @@
+Release Notes
+
+v0.0.1 08.05.2020
+- Initial version
+- Copy from truckLightAndFunction
+- Define IO Pin vars
+- Setup for Beacon
