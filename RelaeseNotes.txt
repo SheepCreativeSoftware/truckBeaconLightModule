@@ -1,5 +1,8 @@
 Release Notes
 
+v0.0.4 09.05.2020
+- added option to define number of beacons
+
 v0.0.3 09.05.2020
 - added Soft PWM Library https://github.com/bhagman/SoftPWM
 - Setup softPwm
