@@ -1,5 +1,5 @@
 /************************************ 
- * truckBeaconLightModule v0.0.5
+ * truckBeaconLightModule v0.0.6
  * Date: 09.05.2020 | 18:42
  * <Beacon Light Module for Truck Light and function module>
  * Copyright (C) 2020 Marina Egner <info@sheepindustries.de>
@@ -19,7 +19,7 @@
 /************************************
  * Configuration Programm
  ************************************/
-#define wireCom false                     	//Activate Communication to other modules via I2C 
+#define wireCom true                     	//Activate Communication to other modules via I2C 
 #if (wireCom == true)
 	#define truckAdress 1                     	//I2C Adress for Module: Truck
 	#define beaconAdress 2                  	//I2C Adress for this Module: Beacon Lights Extension
@@ -85,6 +85,7 @@
  * Global Vars, Classes and Functions
  ************************************/
 bool pulseStatus = false;
+bool RecivedData = false;
 unsigned long statusPreviousMillis = 0;
 #define singleBeaconSampleTime beaconSampleTime/4
 
@@ -99,22 +100,24 @@ unsigned long statusPreviousMillis = 0;
 //Functions
 bool controllerStatus(bool);
 void beaconLight(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+void beaconLightOff(const unsigned int, const unsigned int, const unsigned int, const unsigned int);
 
 void setup() {
   // put your setup code here, to run once:
 	#if (wireCom == true)
-	Wire.begin(BeaconAdress);                 // join I2C bus (address optional for master)
+	Wire.begin(beaconAdress);                 	// join I2C bus (address optional for master)
+	Wire.onReceive(receiveEvent); 				// register event
 	#endif
 
 	#if (numberOfBeacons >= 1) 
-	SoftPWMBegin();                           //Init Soft PWM Lib
-	SoftPWMSet(outFirstBeaconLight1, 0);     //Create and set pin to 0
+	SoftPWMBegin();                           	//Init Soft PWM Lib
+	SoftPWMSet(outFirstBeaconLight1, 0);     	//Create and set pin to 0
 	SoftPWMSetFadeTime(outFirstBeaconLight1, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outFirstBeaconLight2, 0);     //Create and set pin to 0
+	SoftPWMSet(outFirstBeaconLight2, 0);     	//Create and set pin to 0
 	SoftPWMSetFadeTime(outFirstBeaconLight2, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outFirstBeaconLight3, 0);     //Create and set pin to 0
+	SoftPWMSet(outFirstBeaconLight3, 0);     	//Create and set pin to 0
 	SoftPWMSetFadeTime(outFirstBeaconLight3, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outFirstBeaconLight4, 0);     //Create and set pin to 0
+	SoftPWMSet(outFirstBeaconLight4, 0);     	//Create and set pin to 0
 	SoftPWMSetFadeTime(outFirstBeaconLight4, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	#endif
 	#if (numberOfBeacons >= 2) 
@@ -147,27 +150,40 @@ void setup() {
 	SoftPWMSet(outFourthBeaconLight4, 0);     //Create and set pin to 0
 	SoftPWMSetFadeTime(outFourthBeaconLight4, singleBeaconSampleTime4, singleBeaconSampleTime4);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	#endif
-
+	
 }
 
 void loop() {                             		// put your main code here, to run repeatedly:
 	#if (debugLevel >=1)
 	bool errorFlag = false;                 	// local var for error status
 	#endif
-	
-	#if (numberOfBeacons >= 1) 
-	beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, beaconSampleTime);
-	#endif
-	#if (numberOfBeacons >= 2) 
-	beaconLight(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, singleBeaconSampleTime2);
-	#endif
-	#if (numberOfBeacons >= 3) 
-	beaconLight(outThirdBeaconLight1, outThirdBeaconLight2, outThirdBeaconLight3, outThirdBeaconLight4, singleBeaconSampleTime3);
-	#endif
-	#if (numberOfBeacons >= 4) 
-	beaconLight(outFourthBeaconLight1, outFourthBeaconLight2, outFourthBeaconLight3, outFourthBeaconLight4, singleBeaconSampleTime4);
-	#endif
-
+	if(RecivedData) {
+		#if (numberOfBeacons >= 1) 
+		beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, beaconSampleTime);
+		#endif
+		#if (numberOfBeacons >= 2) 
+		beaconLight(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, singleBeaconSampleTime2);
+		#endif
+		#if (numberOfBeacons >= 3) 
+		beaconLight(outThirdBeaconLight1, outThirdBeaconLight2, outThirdBeaconLight3, outThirdBeaconLight4, singleBeaconSampleTime3);
+		#endif
+		#if (numberOfBeacons >= 4) 
+		beaconLight(outFourthBeaconLight1, outFourthBeaconLight2, outFourthBeaconLight3, outFourthBeaconLight4, singleBeaconSampleTime4);
+		#endif
+	} else {
+		#if (numberOfBeacons >= 1) 
+		beaconLightOff(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4);
+		#endif
+		#if (numberOfBeacons >= 2) 
+		beaconLightOff(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4);
+		#endif
+		#if (numberOfBeacons >= 3) 
+		beaconLightOff(outThirdBeaconLight1, outThirdBeaconLight2, outThirdBeaconLight3, outThirdBeaconLight4);
+		#endif
+		#if (numberOfBeacons >= 4) 
+		beaconLightOff(outFourthBeaconLight1, outFourthBeaconLight2, outFourthBeaconLight3, outFourthBeaconLight4);
+		#endif
+	}
 
 
 	// Example For later Communication with other Module
@@ -199,6 +215,13 @@ void beaconLight(const unsigned int pin1, const unsigned int pin2, const unsigne
 		SoftPWMSet(pin1, 255);
 	}
 }
+void beaconLightOff(const unsigned int pin1, const unsigned int pin2, const unsigned int pin3, const unsigned int pin4) {
+	SoftPWMSet(pin1, 0);
+	SoftPWMSet(pin3, 0);
+	SoftPWMSet(pin2, 0);
+	SoftPWMSet(pin4, 0);
+	
+}
 #if (debugLevel >=1)
 bool controllerStatus(bool errorFlag) {
 	if(errorFlag) {
@@ -212,6 +235,14 @@ bool controllerStatus(bool errorFlag) {
 		statusPreviousMillis = currentMillis; 
 	}
 		return pulseStatus;                 	//Flash if everything is OK
+	}
+}
+#endif
+
+#if (wireCom == true)
+void receiveEvent(int howMany) {
+	while (1 <= Wire.available()) { // loop through all 
+	RecivedData = Wire.read(); // receive byte as a character
 	}
 }
 #endif

@@ -1,5 +1,14 @@
 Release Notes
 
+v0.0.6 09.05.2020
+- added I2C Communication to truck module
+- turn light on and off, if truck modul send a comand
+
+v0.0.5 09.05.2020
+- restructur program
+- added debugLevel
+- added license header
+
 v0.0.4 09.05.2020
 - added option to define number of beacons
 
