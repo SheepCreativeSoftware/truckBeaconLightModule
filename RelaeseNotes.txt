@@ -1,5 +1,13 @@
 Release Notes
 
+v0.0.3 09.05.2020
+- added Soft PWM Library https://github.com/bhagman/SoftPWM
+- Setup softPwm
+- added function to turn four led sequencial on and off with a fading effect
+- Tested function
+- added function for 2 Beacons
+- Setup Beacon Sample Time to 500ms
+
 v0.0.2 08.05.2020
 - Remove blink function, cause not needed
 
