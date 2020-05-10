@@ -1,6 +1,6 @@
 /************************************ 
- * truckBeaconLightModule v0.0.6
- * Date: 09.05.2020 | 18:42
+ * truckBeaconLightModule v0.0.7
+ * Date: 10.05.2020 | 15:16
  * <Beacon Light Module for Truck Light and function module>
  * Copyright (C) 2020 Marina Egner <info@sheepindustries.de>
  *
