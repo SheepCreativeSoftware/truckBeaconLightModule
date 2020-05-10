@@ -29,7 +29,7 @@
 #define numberOfBeacons 2
 #define beaconSampleTime 1000				//time for one run through (all 4 LEDs)
 #define beaconTimeVariation beaconSampleTime/10
-#define debugLevel 1						//
+#define debugLevel 3						//
 /************************************
  * Include Files
  ************************************/
@@ -85,7 +85,11 @@
  * Global Vars, Classes and Functions
  ************************************/
 bool pulseStatus = false;
-bool RecivedData = false;
+unsigned int RecivedRegisterAdress = 0;
+#define maxRegisterAdress 10
+unsigned int RecivedData[maxRegisterAdress] = { 0 };
+unsigned int RecivedCRC = 0;
+unsigned int answerToMaster = 0;
 unsigned long statusPreviousMillis = 0;
 #define singleBeaconSampleTime beaconSampleTime/4
 
@@ -101,13 +105,20 @@ unsigned long statusPreviousMillis = 0;
 bool controllerStatus(bool);
 void beaconLight(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
 void beaconLightOff(const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+void receiveEvent(int);
+bool checkCRC(unsigned int, unsigned int, unsigned int);
 
 void setup() {
   // put your setup code here, to run once:
 	#if (wireCom == true)
 	Wire.begin(beaconAdress);                 	// join I2C bus (address optional for master)
 	Wire.onReceive(receiveEvent); 				// register event
+	Wire.onRequest(requestEvent); 				// register event
 	#endif
+	#if (debugLevel >=2)
+	Serial.begin(9600);  // start serial for output
+	#endif
+	
 
 	#if (numberOfBeacons >= 1) 
 	SoftPWMBegin();                           	//Init Soft PWM Lib
@@ -157,7 +168,7 @@ void loop() {                             		// put your main code here, to run r
 	#if (debugLevel >=1)
 	bool errorFlag = false;                 	// local var for error status
 	#endif
-	if(RecivedData) {
+	if(RecivedData[1]) {
 		#if (numberOfBeacons >= 1) 
 		beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, beaconSampleTime);
 		#endif
@@ -185,18 +196,18 @@ void loop() {                             		// put your main code here, to run r
 		#endif
 	}
 
-
+	
 	// Example For later Communication with other Module
 	// TODO: Setup Communication
 	#if (wireCom == true)
-	Wire.beginTransmission(8);             	// transmit to device #8
-	Wire.write("Need to Setup COM");       	// sends five bytes
-	Wire.endTransmission();                	// stop transmitting
+	//wireComunication();
 	#endif
 	#if (debugLevel >=1)
 	controllerStatus(errorFlag);			//function to signal actual status with status led
 	#endif
 }
+
+
 
 void beaconLight(const unsigned int pin1, const unsigned int pin2, const unsigned int pin3, const unsigned int pin4, const unsigned int sampleTime) {
 	unsigned long currentMillis = millis();
@@ -241,8 +252,58 @@ bool controllerStatus(bool errorFlag) {
 
 #if (wireCom == true)
 void receiveEvent(int howMany) {
-	while (1 <= Wire.available()) { // loop through all 
-	RecivedData = Wire.read(); // receive byte as a character
+	unsigned int tempRecivedData = 0;
+	if(howMany == 3){
+		while (1 <= Wire.available()) { // loop through all 
+			RecivedRegisterAdress = Wire.read(); // receive byte as a character
+			tempRecivedData = Wire.read(); // receive byte as a character
+			RecivedCRC = Wire.read(); // receive byte as a character
+			#if (debugLevel >=3)
+			Serial.println("Recived Data:");         // print the character
+			Serial.println(RecivedRegisterAdress);   // print the character
+			Serial.println(tempRecivedData);         // print the character
+			Serial.println(RecivedCRC);         	 // print the character
+			#endif
+		}
+		
+		if((checkCRC(RecivedRegisterAdress, tempRecivedData, RecivedCRC)) && (RecivedRegisterAdress < maxRegisterAdress)) { //Prüfe CRC und größe der adresse
+			RecivedData[RecivedRegisterAdress] = tempRecivedData;		//Wenn alles in Ordung, dann schreibe
+			answerToMaster = 0x01; //Error Code Everything is fine
+			#if (debugLevel >=3)
+			Serial.println("Error Code Everything is fine");         // print the character
+			#endif
+		} else {
+			answerToMaster = 0x02; //Error Code CRC Check failed
+			#if (debugLevel >=3)
+			Serial.println("Error Code CRC Check failed");         // print the character
+			#endif
+		}
+	} else {
+		//Error to much information
+		while (1 <= Wire.available()) { // loop through all 
+			unsigned int trashData = Wire.read(); // receive data an forget it
+		}
+		answerToMaster = 0x03;     //Error Code to much information
+		#if (debugLevel >=3)
+		Serial.println("Error Code to much information");         // print the character
+		#endif
 	}
+	
+}
+
+bool checkCRC(unsigned int RecivedRegisterAdress, unsigned int tempRecivedData, unsigned int RecivedCRC){
+	if(RecivedCRC){
+		return true;
+	} else {
+		return false;
+	}
+	
+}
+
+void requestEvent() {
+	#if (debugLevel >=3)
+	Serial.println("Requenst from Master");         // print the character
+	#endif
+	Wire.write(answerToMaster);
 }
 #endif
