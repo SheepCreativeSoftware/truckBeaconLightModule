@@ -1,6 +1,6 @@
 /************************************ 
- * truckBeaconLightModule v0.0.7
- * Date: 10.05.2020 | 15:16
+ * truckBeaconLightModule v0.0.8
+ * Date: 10.05.2020 | 17:09
  * <Beacon Light Module for Truck Light and function module>
  * Copyright (C) 2020 Marina Egner <info@sheepindustries.de>
  *
@@ -268,12 +268,12 @@ void receiveEvent(int howMany) {
 		
 		if((checkCRC(RecivedRegisterAdress, tempRecivedData, RecivedCRC)) && (RecivedRegisterAdress < maxRegisterAdress)) { //Prüfe CRC und größe der adresse
 			RecivedData[RecivedRegisterAdress] = tempRecivedData;		//Wenn alles in Ordung, dann schreibe
-			answerToMaster = 0x01; //Error Code Everything is fine
+			answerToMaster = 0x10; //Status Code Everything is fine
 			#if (debugLevel >=3)
 			Serial.println("Error Code Everything is fine");         // print the character
 			#endif
 		} else {
-			answerToMaster = 0x02; //Error Code CRC Check failed
+			answerToMaster = 0x11; //Error Code CRC Check failed
 			#if (debugLevel >=3)
 			Serial.println("Error Code CRC Check failed");         // print the character
 			#endif
@@ -283,7 +283,7 @@ void receiveEvent(int howMany) {
 		while (1 <= Wire.available()) { // loop through all 
 			unsigned int trashData = Wire.read(); // receive data an forget it
 		}
-		answerToMaster = 0x03;     //Error Code to much information
+		answerToMaster = 0x12;     //Error Code to much information
 		#if (debugLevel >=3)
 		Serial.println("Error Code to much information");         // print the character
 		#endif

@@ -1,5 +1,10 @@
 Release Notes
 
+v0.0.8 10.05.2020
+- organise error message
+- send only if Data has changed
+- debuging
+
 v0.0.7 10.05.2020
 - added communication Block
 - check if sending data is working
