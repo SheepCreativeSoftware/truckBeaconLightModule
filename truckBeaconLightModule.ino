@@ -1,6 +1,6 @@
 /************************************ 
- * truckBeaconLightModule v0.0.6
- * Date: 09.05.2020 | 18:42
+ * truckBeaconLightModule v0.0.9
+ * Date: 08.06.2020 | 18:13
  * <Beacon Light Module for Truck Light and function module>
  * Copyright (C) 2020 Marina Egner <info@sheepindustries.de>
  *
@@ -19,23 +19,21 @@
 /************************************
  * Configuration Programm
  ************************************/
-#define wireCom true                     	//Activate Communication to other modules via I2C 
-#if (wireCom == true)
-	#define truckAdress 1                     	//I2C Adress for Module: Truck
-	#define beaconAdress 2                  	//I2C Adress for this Module: Beacon Lights Extension
-	#define trailerAdress 3                  	//I2C Adress for Module: Trailer 
-	#define extFunctionAdress 4               	//I2C Adress for Module: Special function for example Servos Steering
+#define serialCom true                     	//Activate Communication to other modules via Serial 
+#if (serialCom == true)
+	#define truckAdress 1                     	//Serial Adress for Module: Truck
+	#define beaconAdress 2                  	//Serial Adress for this Module: Beacon Lights Extension
+	#define trailerAdress 3                  	//Serial Adress for Module: Trailer 
+	#define extFunctionAdress 4               	//Serial Adress for Module: Special function for example Servos Steering
 #endif
 #define numberOfBeacons 2
 #define beaconSampleTime 1000				//time for one run through (all 4 LEDs)
 #define beaconTimeVariation beaconSampleTime/10
-#define debugLevel 1						//
+//Change this value for different debuging levels
+#define debugLevel 3						////1 = Status LED | >2 = Serial Monitor
 /************************************
  * Include Files
  ************************************/
-#if (wireCom == true)
-	#include <Wire.h>                         	//Include I2C Library
-#endif
 #include <SoftPWM.h>						//https://github.com/bhagman/SoftPWM
 
 /************************************
@@ -66,26 +64,46 @@
 	#define outSecondBeaconLight3 10          	//Second Beacon light 3 output pin
 	#define outSecondBeaconLight4 11          	//Second Beacon light 4 output pin
 #endif
-#if (numberOfBeacons >= 3) 
-	#define outThirdBeaconLight1 12            	//Third Beacon light 1 output pin
-	#define outThirdBeaconLight2 13            	//Third Beacon light 2 output pin
-	#define outThirdBeaconLight3 14           	//Third Beacon light 3 output pin
-	#define outThirdBeaconLight4 15           	//Third Beacon light 4 output pin
-#endif
-#if (numberOfBeacons >= 4) 
-	#define outFourthBeaconLight1 16           	//Fourth Beacon light 1 output pin
-	#define outFourthBeaconLight2 17           	//Fourth Beacon light 2 output pin
-	#define outFourthBeaconLight3 18          	//Fourth Beacon light 3 output pin
-	#define outFourthBeaconLight4 19          	//Fourth Beacon light 4 output pin
-#endif
 
 //Free IOs 18, 19
 /************************************
  * Definition and Initialisation 
  * Global Vars, Classes and Functions
  ************************************/
+// These serial port names are intended to allow libraries and architecture-neutral
+// sketches to automatically default to the correct port name for a particular type
+// of use.  For example, a GPS module would normally connect to SERIAL_PORT_HARDWARE_OPEN,
+// the first hardware serial port whose RX/TX pins are not dedicated to another use.
+//
+// SERIAL_PORT_MONITOR        Port which normally prints to the Arduino Serial Monitor
+//
+// SERIAL_PORT_USBVIRTUAL     Port which is USB virtual serial
+//
+// SERIAL_PORT_LINUXBRIDGE    Port which connects to a Linux system via Bridge library
+//
+// SERIAL_PORT_HARDWARE       Hardware serial port, physical RX & TX pins.
+//
+// SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
+//                            pins are NOT connected to anything by default.
+#if (SERIAL_PORT_MONITOR != SERIAL_PORT_HARDWARE) 	//if serial ports are different then the arduino has more than one serial port
+	#ifndef SerialUSB								//if not allready defined
+		#define SerialUSB SERIAL_PORT_MONITOR		//then define monitor port
+	#endif
+#else
+	#if (debugLevel >1)								//if serial ports are the same debuging is not possible (for example on UNO)
+		#define debugLevel 1						//do not change!!!
+	#endif
+#endif
+#ifndef SerialHW									//if not allready defined
+	#define SerialHW SERIAL_PORT_HARDWARE			//then define hardware port
+#endif
+ 
 bool pulseStatus = false;
-bool RecivedData = false;
+unsigned int RecivedRegisterAdress = 0;
+#define maxRegisterAdress 10
+unsigned int RecivedData[maxRegisterAdress] = { 0 };
+unsigned int RecivedCRC = 0;
+unsigned int answerToMaster = 0;
 unsigned long statusPreviousMillis = 0;
 #define singleBeaconSampleTime beaconSampleTime/4
 
@@ -101,13 +119,18 @@ unsigned long statusPreviousMillis = 0;
 bool controllerStatus(bool);
 void beaconLight(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
 void beaconLightOff(const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+void receiveEvent(int);
+bool checkCRC(unsigned int, unsigned int, unsigned int);
 
 void setup() {
   // put your setup code here, to run once:
-	#if (wireCom == true)
-	Wire.begin(beaconAdress);                 	// join I2C bus (address optional for master)
-	Wire.onReceive(receiveEvent); 				// register event
+	#if (serialCom == true)
+	SerialHW.begin(115200);  // start Serial for Communication
 	#endif
+	#if (debugLevel >=2)
+	Serial.begin(9600);  // start serial for output
+	#endif
+	
 
 	#if (numberOfBeacons >= 1) 
 	SoftPWMBegin();                           	//Init Soft PWM Lib
@@ -130,45 +153,19 @@ void setup() {
 	SoftPWMSet(outSecondBeaconLight4, 0);     //Create and set pin to 0
 	SoftPWMSetFadeTime(outSecondBeaconLight4, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	#endif
-	#if (numberOfBeacons >= 3) 
-	SoftPWMSet(outThirdBeaconLight1, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outThirdBeaconLight1, singleBeaconSampleTime3, singleBeaconSampleTime3);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outThirdBeaconLight2, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outThirdBeaconLight2, singleBeaconSampleTime3, singleBeaconSampleTime3);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outThirdBeaconLight3, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outThirdBeaconLight3, singleBeaconSampleTime3, singleBeaconSampleTime3);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outThirdBeaconLight4, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outThirdBeaconLight4, singleBeaconSampleTime3, singleBeaconSampleTime3);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	#endif
-	#if (numberOfBeacons >= 4)   
-	SoftPWMSet(outFourthBeaconLight1, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outFourthBeaconLight1, singleBeaconSampleTime4, singleBeaconSampleTime4);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outFourthBeaconLight2, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outFourthBeaconLight2, singleBeaconSampleTime4, singleBeaconSampleTime4);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outFourthBeaconLight3, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outFourthBeaconLight3, singleBeaconSampleTime4, singleBeaconSampleTime4);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	SoftPWMSet(outFourthBeaconLight4, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outFourthBeaconLight4, singleBeaconSampleTime4, singleBeaconSampleTime4);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	#endif
-	
+		
 }
 
 void loop() {                             		// put your main code here, to run repeatedly:
 	#if (debugLevel >=1)
 	bool errorFlag = false;                 	// local var for error status
 	#endif
-	if(RecivedData) {
+	if(RecivedData[1]) {
 		#if (numberOfBeacons >= 1) 
 		beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, beaconSampleTime);
 		#endif
 		#if (numberOfBeacons >= 2) 
 		beaconLight(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, singleBeaconSampleTime2);
-		#endif
-		#if (numberOfBeacons >= 3) 
-		beaconLight(outThirdBeaconLight1, outThirdBeaconLight2, outThirdBeaconLight3, outThirdBeaconLight4, singleBeaconSampleTime3);
-		#endif
-		#if (numberOfBeacons >= 4) 
-		beaconLight(outFourthBeaconLight1, outFourthBeaconLight2, outFourthBeaconLight3, outFourthBeaconLight4, singleBeaconSampleTime4);
 		#endif
 	} else {
 		#if (numberOfBeacons >= 1) 
@@ -177,26 +174,20 @@ void loop() {                             		// put your main code here, to run r
 		#if (numberOfBeacons >= 2) 
 		beaconLightOff(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4);
 		#endif
-		#if (numberOfBeacons >= 3) 
-		beaconLightOff(outThirdBeaconLight1, outThirdBeaconLight2, outThirdBeaconLight3, outThirdBeaconLight4);
-		#endif
-		#if (numberOfBeacons >= 4) 
-		beaconLightOff(outFourthBeaconLight1, outFourthBeaconLight2, outFourthBeaconLight3, outFourthBeaconLight4);
-		#endif
 	}
 
-
+	
 	// Example For later Communication with other Module
 	// TODO: Setup Communication
-	#if (wireCom == true)
-	Wire.beginTransmission(8);             	// transmit to device #8
-	Wire.write("Need to Setup COM");       	// sends five bytes
-	Wire.endTransmission();                	// stop transmitting
+	#if (serialCom == true)
+	//serialComunication();
 	#endif
 	#if (debugLevel >=1)
 	controllerStatus(errorFlag);			//function to signal actual status with status led
 	#endif
 }
+
+
 
 void beaconLight(const unsigned int pin1, const unsigned int pin2, const unsigned int pin3, const unsigned int pin4, const unsigned int sampleTime) {
 	unsigned long currentMillis = millis();
@@ -239,10 +230,60 @@ bool controllerStatus(bool errorFlag) {
 }
 #endif
 
-#if (wireCom == true)
+#if (serialCom == true)
 void receiveEvent(int howMany) {
-	while (1 <= Wire.available()) { // loop through all 
-	RecivedData = Wire.read(); // receive byte as a character
+	unsigned int tempRecivedData = 0;
+	if(howMany == 3){
+		while (1 <= Wire.available()) { // loop through all 
+			RecivedRegisterAdress = Wire.read(); // receive byte as a character
+			tempRecivedData = Wire.read(); // receive byte as a character
+			RecivedCRC = Wire.read(); // receive byte as a character
+			#if (debugLevel >=3)
+			Serial.println("Recived Data:");         // print the character
+			Serial.println(RecivedRegisterAdress);   // print the character
+			Serial.println(tempRecivedData);         // print the character
+			Serial.println(RecivedCRC);         	 // print the character
+			#endif
+		}
+		
+		if((checkCRC(RecivedRegisterAdress, tempRecivedData, RecivedCRC)) && (RecivedRegisterAdress < maxRegisterAdress)) { //Prüfe CRC und größe der adresse
+			RecivedData[RecivedRegisterAdress] = tempRecivedData;		//Wenn alles in Ordung, dann schreibe
+			answerToMaster = 0x10; //Status Code Everything is fine
+			#if (debugLevel >=3)
+			Serial.println("Error Code Everything is fine");         // print the character
+			#endif
+		} else {
+			answerToMaster = 0x11; //Error Code CRC Check failed
+			#if (debugLevel >=3)
+			Serial.println("Error Code CRC Check failed");         // print the character
+			#endif
+		}
+	} else {
+		//Error to much information
+		while (1 <= Wire.available()) { // loop through all 
+			unsigned int trashData = Wire.read(); // receive data an forget it
+		}
+		answerToMaster = 0x12;     //Error Code to much information
+		#if (debugLevel >=3)
+		Serial.println("Error Code to much information");         // print the character
+		#endif
 	}
+	
+}
+
+bool checkCRC(unsigned int RecivedRegisterAdress, unsigned int tempRecivedData, unsigned int RecivedCRC){
+	if(RecivedCRC){
+		return true;
+	} else {
+		return false;
+	}
+	
+}
+
+void requestEvent() {
+	#if (debugLevel >=3)
+	Serial.println("Requenst from Master");         // print the character
+	#endif
+	Wire.write(answerToMaster);
 }
 #endif

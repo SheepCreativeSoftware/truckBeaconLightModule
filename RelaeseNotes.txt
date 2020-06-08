@@ -1,5 +1,18 @@
 Release Notes
 
+v0.0.9 08.06.2020
+- added directives for serial communication
+
+v0.0.8 10.05.2020
+- organise error message
+- send only if Data has changed
+- debuging
+
+v0.0.7 10.05.2020
+- added communication Block
+- check if sending data is working
+  else do error handling
+  
 v0.0.6 09.05.2020
 - added I2C Communication to truck module
 - turn light on and off, if truck modul send a comand
