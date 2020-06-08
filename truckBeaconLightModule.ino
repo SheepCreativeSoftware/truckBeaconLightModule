@@ -85,7 +85,8 @@
 //
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
-#if (SERIAL_PORT_MONITOR != SERIAL_PORT_HARDWARE) 	//if serial ports are different then the arduino has more than one serial port
+//Setup Serial and check if Board is UNO with one Serial or Leonardo/Micro with to Serials
+#if defined(HAVE_HWSERIAL1)							//if serial ports 1 exist then the arduino has more than one serial port
 	#ifndef SerialUSB								//if not allready defined
 		#define SerialUSB SERIAL_PORT_MONITOR		//then define monitor port
 	#endif
@@ -99,12 +100,12 @@
 #endif
  
 bool pulseStatus = false;
-unsigned int RecivedRegisterAdress = 0;
+uint16_t RecivedRegisterAdress = 0;
 #define maxRegisterAdress 10
-unsigned int RecivedData[maxRegisterAdress] = { 0 };
-unsigned int RecivedCRC = 0;
-unsigned int answerToMaster = 0;
-unsigned long statusPreviousMillis = 0;
+uint16_t RecivedData[maxRegisterAdress] = { 0 };
+uint16_t RecivedCRC = 0;
+uint16_t answerToMaster = 0;
+uint32_t statusPreviousMillis = 0;
 #define singleBeaconSampleTime beaconSampleTime/4
 
 #define beaconSampleTime2 beaconSampleTime+beaconTimeVariation
@@ -117,10 +118,10 @@ unsigned long statusPreviousMillis = 0;
 #define singleBeaconSampleTime4 beaconSampleTime4/4
 //Functions
 bool controllerStatus(bool);
-void beaconLight(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
-void beaconLightOff(const unsigned int, const unsigned int, const unsigned int, const unsigned int);
-void receiveEvent(int);
-bool checkCRC(unsigned int, unsigned int, unsigned int);
+void beaconLight(const uint16_t, const uint16_t, const uint16_t, const uint16_t, const uint16_t);
+void beaconLightOff(const uint16_t, const uint16_t, const uint16_t, const uint16_t);
+void receiveEvent(int16_t);
+bool checkCRC(uint16_t, uint16_t, uint16_t);
 
 void setup() {
   // put your setup code here, to run once:
@@ -189,9 +190,9 @@ void loop() {                             		// put your main code here, to run r
 
 
 
-void beaconLight(const unsigned int pin1, const unsigned int pin2, const unsigned int pin3, const unsigned int pin4, const unsigned int sampleTime) {
-	unsigned long currentMillis = millis();
-	const unsigned int singleSampleTime = sampleTime/4;
+void beaconLight(const uint16_t pin1, const uint16_t pin2, const uint16_t pin3, const uint16_t pin4, const uint16_t sampleTime) {
+	uint32_t currentMillis = millis();
+	const uint16_t singleSampleTime = sampleTime/4;
 	if(currentMillis%sampleTime >= singleSampleTime*3){ //ON/OFF Interval at half of Time.
 		SoftPWMSet(pin3, 0);
 		SoftPWMSet(pin4, 255);
@@ -206,7 +207,7 @@ void beaconLight(const unsigned int pin1, const unsigned int pin2, const unsigne
 		SoftPWMSet(pin1, 255);
 	}
 }
-void beaconLightOff(const unsigned int pin1, const unsigned int pin2, const unsigned int pin3, const unsigned int pin4) {
+void beaconLightOff(const uint16_t pin1, const uint16_t pin2, const uint16_t pin3, const uint16_t pin4) {
 	SoftPWMSet(pin1, 0);
 	SoftPWMSet(pin3, 0);
 	SoftPWMSet(pin2, 0);
@@ -218,7 +219,7 @@ bool controllerStatus(bool errorFlag) {
 	if(errorFlag) {
 		return true;
 	} else {
-		unsigned long currentMillis = millis();
+		uint32_t currentMillis = millis();
 	if (currentMillis - statusPreviousMillis >= 1000) { //Zeitverzoegerte Abfrage
 		statusPreviousMillis = currentMillis;
 		pulseStatus = !pulseStatus;
@@ -231,8 +232,8 @@ bool controllerStatus(bool errorFlag) {
 #endif
 
 #if (serialCom == true)
-void receiveEvent(int howMany) {
-	unsigned int tempRecivedData = 0;
+void receiveEvent(int16_t howMany) {
+	uint16_t tempRecivedData = 0;
 	if(howMany == 3){
 		while (1 <= Wire.available()) { // loop through all 
 			RecivedRegisterAdress = Wire.read(); // receive byte as a character
@@ -261,7 +262,7 @@ void receiveEvent(int howMany) {
 	} else {
 		//Error to much information
 		while (1 <= Wire.available()) { // loop through all 
-			unsigned int trashData = Wire.read(); // receive data an forget it
+			uint16_t trashData = Wire.read(); // receive data an forget it
 		}
 		answerToMaster = 0x12;     //Error Code to much information
 		#if (debugLevel >=3)
@@ -271,7 +272,7 @@ void receiveEvent(int howMany) {
 	
 }
 
-bool checkCRC(unsigned int RecivedRegisterAdress, unsigned int tempRecivedData, unsigned int RecivedCRC){
+bool checkCRC(uint16_t RecivedRegisterAdress, uint16_t tempRecivedData, uint16_t RecivedCRC){
 	if(RecivedCRC){
 		return true;
 	} else {
