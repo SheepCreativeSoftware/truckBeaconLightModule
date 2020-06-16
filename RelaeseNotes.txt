@@ -1,5 +1,8 @@
 Release Notes
 
+v0.0.11 17.06.2020
+- extension to 7 LEDs
+
 v0.0.10 08.06.2020
 - reorganised data types
 - fixed serial setup

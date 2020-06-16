@@ -1,6 +1,6 @@
-/************************************ 
- * truckBeaconLightModule v0.0.9
- * Date: 08.06.2020 | 18:13
+/*
+ * truckBeaconLightModule v0.0.11
+ * Date: 17.06.2020 | 00:17
  * <Beacon Light Module for Truck Light and function module>
  * Copyright (C) 2020 Marina Egner <info@sheepindustries.de>
  *
@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License along with this program. 
  * If not, see <https://www.gnu.org/licenses/>.
- ************************************/
+ */
 
 /************************************
  * Configuration Programm
@@ -26,8 +26,8 @@
 	#define trailerAdress 3                  	//Serial Adress for Module: Trailer 
 	#define extFunctionAdress 4               	//Serial Adress for Module: Special function for example Servos Steering
 #endif
-#define numberOfBeacons 2
-#define beaconSampleTime 1000				//time for one run through (all 4 LEDs)
+#define numberOfBeacons 1
+#define beaconSampleTime 500				//time for one run through (all 4 LEDs)
 #define beaconTimeVariation beaconSampleTime/10
 //Change this value for different debuging levels
 #define debugLevel 3						////1 = Status LED | >2 = Serial Monitor
@@ -57,12 +57,15 @@
 	#define outFirstBeaconLight2 5            	//First Beacon light 2 output pin
 	#define outFirstBeaconLight3 6           	//First Beacon light 3 output pin
 	#define outFirstBeaconLight4 7           	//First Beacon light 4 output pin
+	#define outFirstBeaconLight5 8            	//First Beacon light 2 output pin
+	#define outFirstBeaconLight6 9           	//First Beacon light 3 output pin
+	#define outFirstBeaconLight7 10           	//First Beacon light 4 output pin
 #endif
 #if (numberOfBeacons >= 2) 
-	#define outSecondBeaconLight1 8           	//Second Beacon light 1 output pin
-	#define outSecondBeaconLight2 9           	//Second Beacon light 2 output pin
-	#define outSecondBeaconLight3 10          	//Second Beacon light 3 output pin
-	#define outSecondBeaconLight4 11          	//Second Beacon light 4 output pin
+	#define outSecondBeaconLight1 11           	//Second Beacon light 1 output pin
+	#define outSecondBeaconLight2 12           	//Second Beacon light 2 output pin
+	#define outSecondBeaconLight3 13          	//Second Beacon light 3 output pin
+	#define outSecondBeaconLight4 14          	//Second Beacon light 4 output pin
 #endif
 
 //Free IOs 18, 19
@@ -106,22 +109,23 @@ uint16_t RecivedData[maxRegisterAdress] = { 0 };
 uint16_t RecivedCRC = 0;
 uint16_t answerToMaster = 0;
 uint32_t statusPreviousMillis = 0;
-#define singleBeaconSampleTime beaconSampleTime/4
+bool serialIsSent = 0;
+#define singleBeaconSampleTime beaconSampleTime/7
 
 #define beaconSampleTime2 beaconSampleTime+beaconTimeVariation
-#define singleBeaconSampleTime2 beaconSampleTime2/4
+#define singleBeaconSampleTime2 beaconSampleTime2/7
 
 #define beaconSampleTime3 beaconSampleTime-beaconTimeVariation
-#define singleBeaconSampleTime3 beaconSampleTime3/4
+#define singleBeaconSampleTime3 beaconSampleTime3/7
 
 #define beaconSampleTime4 beaconSampleTime2+beaconTimeVariation
-#define singleBeaconSampleTime4 beaconSampleTime4/4
+#define singleBeaconSampleTime4 beaconSampleTime4/7
 //Functions
 bool controllerStatus(bool);
-void beaconLight(const uint16_t, const uint16_t, const uint16_t, const uint16_t, const uint16_t);
-void beaconLightOff(const uint16_t, const uint16_t, const uint16_t, const uint16_t);
-void receiveEvent(int16_t);
-bool checkCRC(uint16_t, uint16_t, uint16_t);
+void beaconLight(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7, const uint16_t sampleTime);
+void beaconLightOff(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7);
+//void receiveEvent(int16_t);
+//bool checkCRC(uint16_t, uint16_t, uint16_t);
 
 void setup() {
   // put your setup code here, to run once:
@@ -129,7 +133,7 @@ void setup() {
 	SerialHW.begin(115200);  // start Serial for Communication
 	#endif
 	#if (debugLevel >=2)
-	Serial.begin(9600);  // start serial for output
+	SerialUSB.begin(9600);  // start serial for output
 	#endif
 	
 
@@ -143,6 +147,12 @@ void setup() {
 	SoftPWMSetFadeTime(outFirstBeaconLight3, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight4, 0);     	//Create and set pin to 0
 	SoftPWMSetFadeTime(outFirstBeaconLight4, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSet(outFirstBeaconLight5, 0);     	//Create and set pin to 0
+	SoftPWMSetFadeTime(outFirstBeaconLight5, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSet(outFirstBeaconLight6, 0);     	//Create and set pin to 0
+	SoftPWMSetFadeTime(outFirstBeaconLight6, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSet(outFirstBeaconLight7, 0);     	//Create and set pin to 0
+	SoftPWMSetFadeTime(outFirstBeaconLight7, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	#endif
 	#if (numberOfBeacons >= 2) 
 	SoftPWMSet(outSecondBeaconLight1, 0);     //Create and set pin to 0
@@ -153,6 +163,12 @@ void setup() {
 	SoftPWMSetFadeTime(outSecondBeaconLight3, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight4, 0);     //Create and set pin to 0
 	SoftPWMSetFadeTime(outSecondBeaconLight4, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSet(outSecondBeaconLight5, 0);     //Create and set pin to 0
+	SoftPWMSetFadeTime(outSecondBeaconLight5, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSet(outSecondBeaconLight6, 0);     //Create and set pin to 0
+	SoftPWMSetFadeTime(outSecondBeaconLight6, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSet(outSecondBeaconLight7, 0);     //Create and set pin to 0
+	SoftPWMSetFadeTime(outSecondBeaconLight7, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	#endif
 		
 }
@@ -161,19 +177,28 @@ void loop() {                             		// put your main code here, to run r
 	#if (debugLevel >=1)
 	bool errorFlag = false;                 	// local var for error status
 	#endif
+	
+	
+	if((millis()%10000 >= 1000) && (serialIsSent == false)) {
+			RecivedData[1] = true;
+			serialIsSent = true;
+		} else if((millis()%10000 < 1000) && (serialIsSent == true)) {
+			serialIsSent = false;			//Stellt sicher, dass Code nur einmal je Sekunde ausgeführt wird.
+			RecivedData[1] = false;
+		}
 	if(RecivedData[1]) {
 		#if (numberOfBeacons >= 1) 
-		beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, beaconSampleTime);
+		beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, outFirstBeaconLight5, outFirstBeaconLight6, outFirstBeaconLight7, beaconSampleTime);
 		#endif
 		#if (numberOfBeacons >= 2) 
-		beaconLight(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, singleBeaconSampleTime2);
+		beaconLight(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, outSecondBeaconLight5, outSecondBeaconLight6, outSecondBeaconLight7, beaconSampleTime2);
 		#endif
 	} else {
 		#if (numberOfBeacons >= 1) 
-		beaconLightOff(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4);
+		beaconLightOff(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, outFirstBeaconLight5, outFirstBeaconLight6, outFirstBeaconLight7);
 		#endif
 		#if (numberOfBeacons >= 2) 
-		beaconLightOff(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4);
+		beaconLightOff(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, outSecondBeaconLight5, outSecondBeaconLight6, outSecondBeaconLight7);
 		#endif
 	}
 
@@ -190,10 +215,19 @@ void loop() {                             		// put your main code here, to run r
 
 
 
-void beaconLight(const uint16_t pin1, const uint16_t pin2, const uint16_t pin3, const uint16_t pin4, const uint16_t sampleTime) {
+void beaconLight(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7, const uint16_t sampleTime) {
 	uint32_t currentMillis = millis();
-	const uint16_t singleSampleTime = sampleTime/4;
-	if(currentMillis%sampleTime >= singleSampleTime*3){ //ON/OFF Interval at half of Time.
+	const uint16_t singleSampleTime = sampleTime/7;
+	if(currentMillis%sampleTime >= singleSampleTime*6){ //ON/OFF Interval at half of Time.
+		SoftPWMSet(pin6, 0);
+		SoftPWMSet(pin7, 255);
+	} else if(currentMillis%sampleTime >= singleSampleTime*5){ //ON/OFF Interval at half of Time.
+		SoftPWMSet(pin5, 0);
+		SoftPWMSet(pin6, 255);
+	} else if(currentMillis%sampleTime >= singleSampleTime*4){ //ON/OFF Interval at half of Time.
+		SoftPWMSet(pin4, 0);
+		SoftPWMSet(pin5, 255);
+	} else if(currentMillis%sampleTime >= singleSampleTime*3){ //ON/OFF Interval at half of Time.
 		SoftPWMSet(pin3, 0);
 		SoftPWMSet(pin4, 255);
 	} else if (currentMillis%sampleTime >= singleSampleTime*2) {
@@ -203,15 +237,20 @@ void beaconLight(const uint16_t pin1, const uint16_t pin2, const uint16_t pin3, 
 		SoftPWMSet(pin1, 0);
 		SoftPWMSet(pin2, 255);
 	} else if (currentMillis%sampleTime < singleSampleTime) {
-		SoftPWMSet(pin4, 0);
+		SoftPWMSet(pin7, 0);
 		SoftPWMSet(pin1, 255);
 	}
+	SerialUSB.println(sampleTime);
+	SerialUSB.println(singleSampleTime);
 }
-void beaconLightOff(const uint16_t pin1, const uint16_t pin2, const uint16_t pin3, const uint16_t pin4) {
+void beaconLightOff(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7) {
 	SoftPWMSet(pin1, 0);
 	SoftPWMSet(pin3, 0);
 	SoftPWMSet(pin2, 0);
 	SoftPWMSet(pin4, 0);
+	SoftPWMSet(pin5, 0);
+	SoftPWMSet(pin6, 0);
+	SoftPWMSet(pin7, 0);
 	
 }
 #if (debugLevel >=1)
@@ -231,7 +270,7 @@ bool controllerStatus(bool errorFlag) {
 }
 #endif
 
-#if (serialCom == true)
+/*#if (serialCom == true)
 void receiveEvent(int16_t howMany) {
 	uint16_t tempRecivedData = 0;
 	if(howMany == 3){
@@ -240,10 +279,10 @@ void receiveEvent(int16_t howMany) {
 			tempRecivedData = Wire.read(); // receive byte as a character
 			RecivedCRC = Wire.read(); // receive byte as a character
 			#if (debugLevel >=3)
-			Serial.println("Recived Data:");         // print the character
-			Serial.println(RecivedRegisterAdress);   // print the character
-			Serial.println(tempRecivedData);         // print the character
-			Serial.println(RecivedCRC);         	 // print the character
+			SerialUSB.println("Recived Data:");         // print the character
+			SerialUSB.println(RecivedRegisterAdress);   // print the character
+			SerialUSB.println(tempRecivedData);         // print the character
+			SerialUSB.println(RecivedCRC);         	 // print the character
 			#endif
 		}
 		
@@ -251,12 +290,12 @@ void receiveEvent(int16_t howMany) {
 			RecivedData[RecivedRegisterAdress] = tempRecivedData;		//Wenn alles in Ordung, dann schreibe
 			answerToMaster = 0x10; //Status Code Everything is fine
 			#if (debugLevel >=3)
-			Serial.println("Error Code Everything is fine");         // print the character
+			SerialUSB.println("Error Code Everything is fine");         // print the character
 			#endif
 		} else {
 			answerToMaster = 0x11; //Error Code CRC Check failed
 			#if (debugLevel >=3)
-			Serial.println("Error Code CRC Check failed");         // print the character
+			SerialUSB.println("Error Code CRC Check failed");         // print the character
 			#endif
 		}
 	} else {
@@ -266,7 +305,7 @@ void receiveEvent(int16_t howMany) {
 		}
 		answerToMaster = 0x12;     //Error Code to much information
 		#if (debugLevel >=3)
-		Serial.println("Error Code to much information");         // print the character
+		SerialUSB.println("Error Code to much information");         // print the character
 		#endif
 	}
 	
@@ -283,8 +322,8 @@ bool checkCRC(uint16_t RecivedRegisterAdress, uint16_t tempRecivedData, uint16_t
 
 void requestEvent() {
 	#if (debugLevel >=3)
-	Serial.println("Requenst from Master");         // print the character
+	SerialUSB.println("Requenst from Master");         // print the character
 	#endif
 	Wire.write(answerToMaster);
 }
-#endif
+#endif*/
