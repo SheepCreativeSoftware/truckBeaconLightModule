@@ -1,6 +1,6 @@
 /*
- * truckBeaconLightModule v0.0.11
- * Date: 17.06.2020 | 00:17
+ * truckBeaconLightModule v0.0.12
+ * Date: 21.06.2020 | 20:13
  * <Beacon Light Module for Truck Light and function module>
  * Copyright (C) 2020 Marina Egner <info@sheepindustries.de>
  *
@@ -19,16 +19,15 @@
 /************************************
  * Configuration Programm
  ************************************/
-#define serialCom true                     	//Activate Communication to other modules via Serial 
+#define serialCom false                     	//Activate Communication to other modules via Serial 
 #if (serialCom == true)
 	#define truckAdress 1                     	//Serial Adress for Module: Truck
 	#define beaconAdress 2                  	//Serial Adress for this Module: Beacon Lights Extension
 	#define trailerAdress 3                  	//Serial Adress for Module: Trailer 
 	#define extFunctionAdress 4               	//Serial Adress for Module: Special function for example Servos Steering
 #endif
-#define numberOfBeacons 1
 #define beaconSampleTime 500				//time for one run through (all 4 LEDs)
-#define beaconTimeVariation beaconSampleTime/10
+#define beaconTimeVariation 10
 //Change this value for different debuging levels
 #define debugLevel 3						////1 = Status LED | >2 = Serial Monitor
 /************************************
@@ -50,23 +49,24 @@
 
 //Outputs
 #if (debugLevel >=1)
-	#define outStatusLed 13
+	#define outStatusLed 13					//Arduino status LED output Pin
 #endif
-#if (numberOfBeacons >= 1)                   	//Arduino status LED output Pin
-	#define outFirstBeaconLight1 4            	//First Beacon light 1 output pin
-	#define outFirstBeaconLight2 5            	//First Beacon light 2 output pin
-	#define outFirstBeaconLight3 6           	//First Beacon light 3 output pin
-	#define outFirstBeaconLight4 7           	//First Beacon light 4 output pin
-	#define outFirstBeaconLight5 8            	//First Beacon light 2 output pin
-	#define outFirstBeaconLight6 9           	//First Beacon light 3 output pin
-	#define outFirstBeaconLight7 10           	//First Beacon light 4 output pin
-#endif
-#if (numberOfBeacons >= 2) 
-	#define outSecondBeaconLight1 11           	//Second Beacon light 1 output pin
-	#define outSecondBeaconLight2 12           	//Second Beacon light 2 output pin
-	#define outSecondBeaconLight3 13          	//Second Beacon light 3 output pin
-	#define outSecondBeaconLight4 14          	//Second Beacon light 4 output pin
-#endif
+
+#define outFirstBeaconLight1 3            	//First Beacon light 1 output pin
+#define outFirstBeaconLight2 4            	//First Beacon light 2 output pin
+#define outFirstBeaconLight3 5           	//First Beacon light 3 output pin
+#define outFirstBeaconLight4 6           	//First Beacon light 4 output pin
+#define outFirstBeaconLight5 7            	//First Beacon light 2 output pin
+#define outFirstBeaconLight6 8           	//First Beacon light 3 output pin
+#define outFirstBeaconLight7 9           	//First Beacon light 4 output pin
+
+#define outSecondBeaconLight1 12           	//Second Beacon light 1 output pin
+#define outSecondBeaconLight2 11           	//Second Beacon light 2 output pin
+#define outSecondBeaconLight3 10          	//Second Beacon light 3 output pin
+#define outSecondBeaconLight4 A0          	//Second Beacon light 4 output pin
+#define outSecondBeaconLight5 A1           	//Second Beacon light 2 output pin
+#define outSecondBeaconLight6 A2          	//Second Beacon light 3 output pin
+#define outSecondBeaconLight7 A3          	//Second Beacon light 4 output pin
 
 //Free IOs 18, 19
 /************************************
@@ -110,16 +110,11 @@ uint16_t RecivedCRC = 0;
 uint16_t answerToMaster = 0;
 uint32_t statusPreviousMillis = 0;
 bool serialIsSent = 0;
-#define singleBeaconSampleTime beaconSampleTime/7
+#define singleBeaconSampleTime (beaconSampleTime / 7)
 
-#define beaconSampleTime2 beaconSampleTime+beaconTimeVariation
-#define singleBeaconSampleTime2 beaconSampleTime2/7
+#define beaconSampleTime2 (beaconSampleTime + beaconTimeVariation)
+#define singleBeaconSampleTime2 (beaconSampleTime2 / 7)
 
-#define beaconSampleTime3 beaconSampleTime-beaconTimeVariation
-#define singleBeaconSampleTime3 beaconSampleTime3/7
-
-#define beaconSampleTime4 beaconSampleTime2+beaconTimeVariation
-#define singleBeaconSampleTime4 beaconSampleTime4/7
 //Functions
 bool controllerStatus(bool);
 void beaconLight(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7, const uint16_t sampleTime);
@@ -132,44 +127,44 @@ void setup() {
 	#if (serialCom == true)
 	SerialHW.begin(115200);  // start Serial for Communication
 	#endif
+	#if (debugLevel >=1)
+	pinMode(outStatusLed, OUTPUT);
+	#endif
 	#if (debugLevel >=2)
 	SerialUSB.begin(9600);  // start serial for output
 	#endif
-	
 
-	#if (numberOfBeacons >= 1) 
 	SoftPWMBegin();                           	//Init Soft PWM Lib
 	SoftPWMSet(outFirstBeaconLight1, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight1, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outFirstBeaconLight1, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight2, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight2, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outFirstBeaconLight2, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight3, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight3, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outFirstBeaconLight3, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight4, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight4, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outFirstBeaconLight4, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight5, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight5, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outFirstBeaconLight5, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight6, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight6, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outFirstBeaconLight6, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outFirstBeaconLight7, 0);     	//Create and set pin to 0
-	SoftPWMSetFadeTime(outFirstBeaconLight7, singleBeaconSampleTime, singleBeaconSampleTime);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	#endif
-	#if (numberOfBeacons >= 2) 
+	SoftPWMSetFadeTime(outFirstBeaconLight7, singleBeaconSampleTime-10, singleBeaconSampleTime-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+
 	SoftPWMSet(outSecondBeaconLight1, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight1, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outSecondBeaconLight1, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight2, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight2, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outSecondBeaconLight2, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight3, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight3, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outSecondBeaconLight3, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight4, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight4, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outSecondBeaconLight4, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight5, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight5, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outSecondBeaconLight5, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight6, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight6, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+	SoftPWMSetFadeTime(outSecondBeaconLight6, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	SoftPWMSet(outSecondBeaconLight7, 0);     //Create and set pin to 0
-	SoftPWMSetFadeTime(outSecondBeaconLight7, singleBeaconSampleTime2, singleBeaconSampleTime2);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
-	#endif
+	SoftPWMSetFadeTime(outSecondBeaconLight7, singleBeaconSampleTime2-10, singleBeaconSampleTime2-10);       //Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+
 		
 }
 
@@ -179,27 +174,19 @@ void loop() {                             		// put your main code here, to run r
 	#endif
 	
 	
-	if((millis()%10000 >= 1000) && (serialIsSent == false)) {
+	if((millis()%100000 >= 1000) && (serialIsSent == false)) {
 			RecivedData[1] = true;
 			serialIsSent = true;
-		} else if((millis()%10000 < 1000) && (serialIsSent == true)) {
+		} else if((millis()%100000 < 1000) && (serialIsSent == true)) {
 			serialIsSent = false;			//Stellt sicher, dass Code nur einmal je Sekunde ausgeführt wird.
 			RecivedData[1] = false;
 		}
 	if(RecivedData[1]) {
-		#if (numberOfBeacons >= 1) 
 		beaconLight(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, outFirstBeaconLight5, outFirstBeaconLight6, outFirstBeaconLight7, beaconSampleTime);
-		#endif
-		#if (numberOfBeacons >= 2) 
 		beaconLight(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, outSecondBeaconLight5, outSecondBeaconLight6, outSecondBeaconLight7, beaconSampleTime2);
-		#endif
 	} else {
-		#if (numberOfBeacons >= 1) 
 		beaconLightOff(outFirstBeaconLight1, outFirstBeaconLight2, outFirstBeaconLight3, outFirstBeaconLight4, outFirstBeaconLight5, outFirstBeaconLight6, outFirstBeaconLight7);
-		#endif
-		#if (numberOfBeacons >= 2) 
 		beaconLightOff(outSecondBeaconLight1, outSecondBeaconLight2, outSecondBeaconLight3, outSecondBeaconLight4, outSecondBeaconLight5, outSecondBeaconLight6, outSecondBeaconLight7);
-		#endif
 	}
 
 	
@@ -217,7 +204,7 @@ void loop() {                             		// put your main code here, to run r
 
 void beaconLight(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7, const uint16_t sampleTime) {
 	uint32_t currentMillis = millis();
-	const uint16_t singleSampleTime = sampleTime/7;
+	uint16_t singleSampleTime = sampleTime/7;
 	if(currentMillis%sampleTime >= singleSampleTime*6){ //ON/OFF Interval at half of Time.
 		SoftPWMSet(pin6, 0);
 		SoftPWMSet(pin7, 255);
@@ -240,8 +227,10 @@ void beaconLight(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, con
 		SoftPWMSet(pin7, 0);
 		SoftPWMSet(pin1, 255);
 	}
-	SerialUSB.println(sampleTime);
-	SerialUSB.println(singleSampleTime);
+	// #if (debugLevel >=2)
+	// SerialUSB.println(sampleTime);
+	// SerialUSB.println(singleSampleTime);
+	// #endif
 }
 void beaconLightOff(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, const uint8_t pin4, const uint8_t pin5, const uint8_t pin6, const uint8_t pin7) {
 	SoftPWMSet(pin1, 0);
@@ -251,7 +240,7 @@ void beaconLightOff(const uint8_t pin1, const uint8_t pin2, const uint8_t pin3, 
 	SoftPWMSet(pin5, 0);
 	SoftPWMSet(pin6, 0);
 	SoftPWMSet(pin7, 0);
-	
+
 }
 #if (debugLevel >=1)
 bool controllerStatus(bool errorFlag) {
