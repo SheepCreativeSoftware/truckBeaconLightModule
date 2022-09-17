@@ -71,11 +71,16 @@ void beaconLightOff(const uint8_t pin1,
 					const uint8_t pin7
 	) {
 	SoftPWMSet(pin1, 0);
-	SoftPWMSet(pin3, 0);
 	SoftPWMSet(pin2, 0);
+	SoftPWMSet(pin3, 0);
 	SoftPWMSet(pin4, 0);
 	SoftPWMSet(pin5, 0);
 	SoftPWMSet(pin6, 0);
 	SoftPWMSet(pin7, 0);
 
+}
+
+void beaconTest(const uint8_t pin1, const uint8_t pin2, uint8_t value) {
+	SoftPWMSet(pin1, value);
+	SoftPWMSet(pin2, value);
 }

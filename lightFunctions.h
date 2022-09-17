@@ -42,5 +42,6 @@ void beaconLightOff(const uint8_t pin1,
 					const uint8_t pin6,
 					const uint8_t pin7
 );
+void beaconTest(const uint8_t pin1, const uint8_t pin2, uint8_t value);
 
 #endif

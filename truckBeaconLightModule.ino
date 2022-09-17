@@ -94,10 +94,8 @@ void loop() {                             		// put your main code here, to run r
 
 	#if (SERIAL_COM)
 	serialUpdate();								// Update Data from serial communication
-	bool beaconLightState = getLightData(LEFTBLINK);	// Get Light State from Serial Interface
+	bool beaconLightState = getLightData(BEACONLIGHT);	// Get Light State from Serial Interface
 	#endif
-	
-	
 	
 	if(beaconLightState) {
 		// Turn lights after each other on

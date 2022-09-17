@@ -59,21 +59,21 @@ void setup() {
 
 
  initLightOutput(); // Init SoftPWM Lib
- setupLightOutput(3 /*First Beacon light 1 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10); // Create and set pin | Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+ setupLightOutput(5 /*First Beacon light 1 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10); // Create and set pin | Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
+ setupLightOutput(6 /*First Beacon light 2 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(3 /*First Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(8 /*First Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
  setupLightOutput(4 /*First Beacon light 2 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(5 /*First Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(6 /*First Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(7 /*First Beacon light 2 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(8 /*First Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(9 /*First Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(9 /*First Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(7 /*First Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
 
- setupLightOutput(12 /*Second Beacon light 1 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10); // Create and set pin | Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
- setupLightOutput(11 /*Second Beacon light 2 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(10 /*Second Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(A0 /*Second Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(11 /*Second Beacon light 1 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10); // Create and set pin | Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
  setupLightOutput(A1 /*Second Beacon light 2 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(A3 /*Second Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(A0 /*Second Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(12 /*Second Beacon light 2 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
  setupLightOutput(A2 /*Second Beacon light 3 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
- setupLightOutput(A3 /*Second Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
+ setupLightOutput(10 /*Second Beacon light 4 output pin*/, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10, (500 /* time for one run through (all 4 LEDs)*/ / 7) /* Calculate time for a single of 7 LEDs*/-10);
 }
 
 void loop() { // put your main code here, to run repeatedly:
@@ -83,53 +83,51 @@ void loop() { // put your main code here, to run repeatedly:
 
 
  serialUpdate(); // Update Data from serial communication
- bool beaconLightState = getLightData(4); // Get Light State from Serial Interface
-
-
+ bool beaconLightState = getLightData(6); // Get Light State from Serial Interface
 
 
  if(beaconLightState) {
   // Turn lights after each other on
-  beaconLight(3 /*First Beacon light 1 output pin*/,
+  beaconLight(5 /*First Beacon light 1 output pin*/,
+     6 /*First Beacon light 2 output pin*/,
+     3 /*First Beacon light 3 output pin*/,
+     8 /*First Beacon light 4 output pin*/,
      4 /*First Beacon light 2 output pin*/,
-     5 /*First Beacon light 3 output pin*/,
-     6 /*First Beacon light 4 output pin*/,
-     7 /*First Beacon light 2 output pin*/,
-     8 /*First Beacon light 3 output pin*/,
-     9 /*First Beacon light 4 output pin*/,
+     9 /*First Beacon light 3 output pin*/,
+     7 /*First Beacon light 4 output pin*/,
      500 /* time for one run through (all 4 LEDs)*/
   );
-  beaconLight(12 /*Second Beacon light 1 output pin*/,
-     11 /*Second Beacon light 2 output pin*/,
-     10 /*Second Beacon light 3 output pin*/,
-     A0 /*Second Beacon light 4 output pin*/,
+  beaconLight(11 /*Second Beacon light 1 output pin*/,
      A1 /*Second Beacon light 2 output pin*/,
+     A3 /*Second Beacon light 3 output pin*/,
+     A0 /*Second Beacon light 4 output pin*/,
+     12 /*Second Beacon light 2 output pin*/,
      A2 /*Second Beacon light 3 output pin*/,
-     A3 /*Second Beacon light 4 output pin*/,
+     10 /*Second Beacon light 4 output pin*/,
      (500 /* time for one run through (all 4 LEDs)*/ + 10 /* time variation between both beacon lights*/) /* Change time for second beacon light to be different*/
   );
  } else {
   // Trun all lights off
-  beaconLightOff(3 /*First Beacon light 1 output pin*/,
+  beaconLightOff(5 /*First Beacon light 1 output pin*/,
+     6 /*First Beacon light 2 output pin*/,
+     3 /*First Beacon light 3 output pin*/,
+     8 /*First Beacon light 4 output pin*/,
      4 /*First Beacon light 2 output pin*/,
-     5 /*First Beacon light 3 output pin*/,
-     6 /*First Beacon light 4 output pin*/,
-     7 /*First Beacon light 2 output pin*/,
-     8 /*First Beacon light 3 output pin*/,
-     9 /*First Beacon light 4 output pin*/
+     9 /*First Beacon light 3 output pin*/,
+     7 /*First Beacon light 4 output pin*/
   );
-  beaconLightOff(12 /*Second Beacon light 1 output pin*/,
-     11 /*Second Beacon light 2 output pin*/,
-     10 /*Second Beacon light 3 output pin*/,
-     A0 /*Second Beacon light 4 output pin*/,
+  beaconLightOff(11 /*Second Beacon light 1 output pin*/,
      A1 /*Second Beacon light 2 output pin*/,
+     A3 /*Second Beacon light 3 output pin*/,
+     A0 /*Second Beacon light 4 output pin*/,
+     12 /*Second Beacon light 2 output pin*/,
      A2 /*Second Beacon light 3 output pin*/,
-     A3 /*Second Beacon light 4 output pin*/
+     10 /*Second Beacon light 4 output pin*/
   );
  }
 
 
- controllerStatus(errorFlag); //function to signal actual status with status led
+ digitalWrite(13 /*Arduino status LED output Pin*/, controllerStatus(errorFlag)); //function to signal actual status with status led
 
 }
 

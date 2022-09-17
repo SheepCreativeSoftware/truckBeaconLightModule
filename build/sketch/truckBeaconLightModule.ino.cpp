@@ -60,7 +60,7 @@ bool controllerStatus(bool);
 void setup();
 #line 90 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
 void loop();
-#line 148 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
+#line 146 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
 bool controllerStatus(bool errorFlag);
 #line 57 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
 void setup() {
@@ -103,10 +103,8 @@ void loop() {                             		// put your main code here, to run r
 
 	#if (SERIAL_COM)
 	serialUpdate();								// Update Data from serial communication
-	bool beaconLightState = getLightData(LEFTBLINK);	// Get Light State from Serial Interface
+	bool beaconLightState = getLightData(BEACONLIGHT);	// Get Light State from Serial Interface
 	#endif
-	
-	
 	
 	if(beaconLightState) {
 		// Turn lights after each other on
@@ -149,7 +147,7 @@ void loop() {                             		// put your main code here, to run r
 	}
 
 	#if (DEBUGLEVEL >=1)
-	controllerStatus(errorFlag);			//function to signal actual status with status led
+	digitalWrite(outStatusLed, controllerStatus(errorFlag));			//function to signal actual status with status led
 	#endif
 }
 

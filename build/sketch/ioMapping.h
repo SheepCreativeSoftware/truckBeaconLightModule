@@ -29,21 +29,21 @@
 //Outputs
 #define outStatusLed 13						//Arduino status LED output Pin
 
-#define outFirstBeaconLight1 3				//First Beacon light 1 output pin
-#define outFirstBeaconLight2 4				//First Beacon light 2 output pin
-#define outFirstBeaconLight3 5				//First Beacon light 3 output pin
-#define outFirstBeaconLight4 6				//First Beacon light 4 output pin
-#define outFirstBeaconLight5 7				//First Beacon light 2 output pin
-#define outFirstBeaconLight6 8				//First Beacon light 3 output pin
-#define outFirstBeaconLight7 9				//First Beacon light 4 output pin
+#define outFirstBeaconLight1 5				//First Beacon light 1 output pin
+#define outFirstBeaconLight2 6				//First Beacon light 2 output pin
+#define outFirstBeaconLight3 3				//First Beacon light 3 output pin
+#define outFirstBeaconLight4 8				//First Beacon light 4 output pin
+#define outFirstBeaconLight5 4				//First Beacon light 2 output pin
+#define outFirstBeaconLight6 9				//First Beacon light 3 output pin
+#define outFirstBeaconLight7 7				//First Beacon light 4 output pin
 
-#define outSecondBeaconLight1 12			//Second Beacon light 1 output pin
-#define outSecondBeaconLight2 11			//Second Beacon light 2 output pin
-#define outSecondBeaconLight3 10			//Second Beacon light 3 output pin
+#define outSecondBeaconLight1 11			//Second Beacon light 1 output pin
+#define outSecondBeaconLight2 A1			//Second Beacon light 2 output pin
+#define outSecondBeaconLight3 A3			//Second Beacon light 3 output pin
 #define outSecondBeaconLight4 A0			//Second Beacon light 4 output pin
-#define outSecondBeaconLight5 A1			//Second Beacon light 2 output pin
+#define outSecondBeaconLight5 12			//Second Beacon light 2 output pin
 #define outSecondBeaconLight6 A2			//Second Beacon light 3 output pin
-#define outSecondBeaconLight7 A3			//Second Beacon light 4 output pin
+#define outSecondBeaconLight7 10			//Second Beacon light 4 output pin
 
 //Free IOs 18, 19
 
