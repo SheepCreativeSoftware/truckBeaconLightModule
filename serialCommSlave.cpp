@@ -25,6 +25,7 @@
 #define FUNC_LIGHT_DATA 1			// Function if receiving Light data
 #define FUNC_SERVO 2				// Function if receiving Servo data
 #define MAX_TIME_SIGNAL 1000		// Maximum Time Received Data is valid
+#define WAIT_FOR_NEXT_BYTE 1000		// Time in microseconds to wait for next byte while receiving data
 
 // For CRC calculation
 #define BIT_COUNT 8					// Count of bits in a byte
@@ -68,7 +69,7 @@ uint16_t serialUpdate() {
 				frame[buffer] = (*SerialPort).read();
 				buffer++;
 			}
-			delayMicroseconds(1000); // inter character time out?
+			delayMicroseconds(WAIT_FOR_NEXT_BYTE); // inter character time out?
 		}
 		
 		// If an overflow occurred increment the errorCount

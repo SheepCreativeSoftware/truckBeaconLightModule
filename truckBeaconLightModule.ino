@@ -140,7 +140,7 @@ void loop() {                             		// put your main code here, to run r
 	}
 
 	#if (DEBUGLEVEL >=1)
-	controllerStatus(errorFlag);			//function to signal actual status with status led
+	digitalWrite(outStatusLed, controllerStatus(errorFlag));			//function to signal actual status with status led
 	#endif
 }
 
