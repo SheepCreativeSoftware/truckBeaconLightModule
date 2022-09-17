@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#line 1 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
 /*
  * truckBeaconLightModule v0.1.0
  * Date: 17.09.2022 | 20:13
@@ -54,6 +56,13 @@ uint32_t statusPreviousMillis = 0;
 // Functions
 bool controllerStatus(bool);
 
+#line 57 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
+void setup();
+#line 90 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
+void loop();
+#line 148 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
+bool controllerStatus(bool errorFlag);
+#line 57 "/home/magraina/projects/truckBeaconLightModule/truckBeaconLightModule.ino"
 void setup() {
   // put your setup code here, to run once:
 	#if (SERIAL_COM == true)
@@ -160,3 +169,4 @@ bool controllerStatus(bool errorFlag) {
 	}
 }
 #endif
+

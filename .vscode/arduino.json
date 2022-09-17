@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:micro",
+    "port": "/dev/ttyACM0",
+    "sketch": "truckBeaconLightModule.ino",
+	"output": "./build"
+}
