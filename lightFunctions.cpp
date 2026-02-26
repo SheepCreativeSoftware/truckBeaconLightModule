@@ -31,15 +31,11 @@ void beaconLight(const uint8_t pin1,
 				const uint8_t pin4,
 				const uint8_t pin5,
 				const uint8_t pin6,
-				const uint8_t pin7,
 				const uint16_t sampleTime
 	) {
 	uint32_t currentMillis = millis();
-	uint16_t singleSampleTime = sampleTime/7;
-	if(currentMillis%sampleTime >= singleSampleTime*6){ 			// On below 6/7 of samplingTime
-		SoftPWMSet(pin6, 0);
-		SoftPWMSet(pin7, 255);
-	} else if(currentMillis%sampleTime >= singleSampleTime*5) { 	// On below 5/7 of samplingTime
+	uint16_t singleSampleTime = sampleTime/6;
+	if(currentMillis%sampleTime >= singleSampleTime*5) { 	// On below 5/7 of samplingTime
 		SoftPWMSet(pin5, 0);
 		SoftPWMSet(pin6, 255);
 	} else if(currentMillis%sampleTime >= singleSampleTime*4) { 	// On below 4/7 of samplingTime
@@ -55,7 +51,7 @@ void beaconLight(const uint8_t pin1,
 		SoftPWMSet(pin1, 0);
 		SoftPWMSet(pin2, 255);
 	} else if (currentMillis%sampleTime < singleSampleTime) {		// On under 1/7 of samplingTime
-		SoftPWMSet(pin7, 0);
+		SoftPWMSet(pin6, 0);
 		SoftPWMSet(pin1, 255);
 	}
 }
@@ -66,8 +62,7 @@ void beaconLightOff(const uint8_t pin1,
 					const uint8_t pin3,
 					const uint8_t pin4,
 					const uint8_t pin5,
-					const uint8_t pin6,
-					const uint8_t pin7
+					const uint8_t pin6
 	) {
 	SoftPWMSet(pin1, 0);
 	SoftPWMSet(pin2, 0);
@@ -75,11 +70,14 @@ void beaconLightOff(const uint8_t pin1,
 	SoftPWMSet(pin4, 0);
 	SoftPWMSet(pin5, 0);
 	SoftPWMSet(pin6, 0);
-	SoftPWMSet(pin7, 0);
-
 }
 
 void beaconTest(const uint8_t pin1, const uint8_t pin2, uint8_t value) {
 	SoftPWMSet(pin1, value);
 	SoftPWMSet(pin2, value);
+}
+
+void setBooleanLight(uint8_t pin, bool state, uint8_t highValue = SOFT_PWM_HIGH) {
+	if(state) SoftPWMSet(pin, highValue);
+	if(!state) SoftPWMSet(pin, SOFT_PWM_LOW);
 }

@@ -76,7 +76,7 @@ void setup() {
 	setupLightOutput(outFirstBeaconLight4, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
 	setupLightOutput(outFirstBeaconLight5, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
 	setupLightOutput(outFirstBeaconLight6, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
-	setupLightOutput(outFirstBeaconLight7, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
+	setupLightOutput(outAuxLight, 200, 200);
 	
 	setupLightOutput(outSecondBeaconLight1, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10); // Create and set pin | Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
 	setupLightOutput(outSecondBeaconLight2, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
@@ -84,7 +84,7 @@ void setup() {
 	setupLightOutput(outSecondBeaconLight4, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
 	setupLightOutput(outSecondBeaconLight5, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
 	setupLightOutput(outSecondBeaconLight6, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);
-	setupLightOutput(outSecondBeaconLight7, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10);		
+	setupLightOutput(outParkLight, 200, 200);		
 }
 
 void loop() {                             		// put your main code here, to run repeatedly:
@@ -95,6 +95,12 @@ void loop() {                             		// put your main code here, to run r
 	#if (SERIAL_COM)
 	serialUpdate();								// Update Data from serial communication
 	bool beaconLightState = getLightData(BEACONLIGHT);	// Get Light State from Serial Interface
+	bool parkLightState = getLightData(PARKLIGHT);
+	bool auxLightState = getLightData(AUXLIGHT);
+	#else
+	bool beaconLightState = true;
+	bool parkLightState = true;
+	bool auxLightState = true;
 	#endif
 	
 	if(beaconLightState) {
@@ -105,7 +111,6 @@ void loop() {                             		// put your main code here, to run r
 					outFirstBeaconLight4,
 					outFirstBeaconLight5,
 					outFirstBeaconLight6,
-					outFirstBeaconLight7,
 					BEACON_SAMPLETIME
 		);
 		beaconLight(outSecondBeaconLight1,
@@ -114,7 +119,6 @@ void loop() {                             		// put your main code here, to run r
 					outSecondBeaconLight4,
 					outSecondBeaconLight5,
 					outSecondBeaconLight6,
-					outSecondBeaconLight7,
 					BEACON_SAMPLETIME2
 		);
 	} else {
@@ -124,18 +128,19 @@ void loop() {                             		// put your main code here, to run r
 					outFirstBeaconLight3,
 					outFirstBeaconLight4,
 					outFirstBeaconLight5,
-					outFirstBeaconLight6,
-					outFirstBeaconLight7
+					outFirstBeaconLight6
 		);
 		beaconLightOff(outSecondBeaconLight1,
 					outSecondBeaconLight2,
 					outSecondBeaconLight3,
 					outSecondBeaconLight4,
 					outSecondBeaconLight5,
-					outSecondBeaconLight6,
-					outSecondBeaconLight7
+					outSecondBeaconLight6
 		);
 	}
+
+	setBooleanLight(outAuxLight, auxLightState);
+	setBooleanLight(outParkLight, parkLightState);
 
 	#if (DEBUGLEVEL >=1)
 	digitalWrite(outStatusLed, controllerStatus(errorFlag));			//function to signal actual status with status led
