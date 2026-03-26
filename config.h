@@ -19,7 +19,7 @@
 /************************************
  * Configuration Programm
  ************************************/
-#define SERIAL_COM false							// Activate Communication to other modules via Serial 
+#define SERIAL_COM true							// Activate Communication to other modules via Serial 
 #define BEACON_SAMPLETIME 500					// time for one run through (all 4 LEDs)
 #define BEACON_TIME_VARIATION 10				// time variation between both beacon lights
 //Change this value for different debuging levels

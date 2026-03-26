@@ -48,7 +48,7 @@
 // Variables
 bool pulseStatus = false;
 uint32_t statusPreviousMillis = 0;
-#define singleBEACON_SAMPLETIME (BEACON_SAMPLETIME / 7) // Calculate time for a single of 7 LEDs
+#define singleBEACON_SAMPLETIME (BEACON_SAMPLETIME / 6) // Calculate time for a single of 6 LEDs
 #define BEACON_SAMPLETIME2 (BEACON_SAMPLETIME + BEACON_TIME_VARIATION) // Change time for second beacon light to be different
 
 // Functions
@@ -65,9 +65,6 @@ void setup() {
 	#endif
 	#if (DEBUGLEVEL >=1)
 	pinMode(outStatusLed, OUTPUT);
-	#endif
-	#if (DEBUGLEVEL >=2)
-	SerialUSB.begin(9600);  // start serial for output
 	#endif
 	initLightOutput();					// Init SoftPWM Lib
 	setupLightOutput(outFirstBeaconLight1, singleBEACON_SAMPLETIME-10, singleBEACON_SAMPLETIME-10); // Create and set pin | Set fade time for pin 1000 ms fade-up time, and 1000 ms fade-down time
@@ -94,9 +91,11 @@ void loop() {                             		// put your main code here, to run r
 
 	#if (SERIAL_COM)
 	serialUpdate();								// Update Data from serial communication
-	bool beaconLightState = getLightData(BEACONLIGHT);	// Get Light State from Serial Interface
-	bool parkLightState = getLightData(PARKLIGHT);
-	bool auxLightState = getLightData(AUXLIGHT);
+	uint32_t lightState = getLightState();		// Get Light State from Serial Interface
+	uint16_t globalEffectState = getGlobalEffectState();	// Get Global Effect State from Serial Interface
+	bool beaconLightState = (lightState & BIT_BEACON_LIGHT) != 0;
+	bool parkLightState = (lightState & BIT_PARKING_LIGHT) != 0;
+	bool auxLightState = (lightState & BIT_AUX1) || (globalEffectState & BIT_GLOBAL_FLASH_TO_PASS) != 0;
 	#else
 	bool beaconLightState = true;
 	bool parkLightState = true;
@@ -140,7 +139,7 @@ void loop() {                             		// put your main code here, to run r
 	}
 
 	setBooleanLight(outAuxLight, auxLightState);
-	setBooleanLight(outParkLight, parkLightState);
+	setBooleanLight(outParkLight, parkLightState, 150);
 
 	#if (DEBUGLEVEL >=1)
 	digitalWrite(outStatusLed, controllerStatus(errorFlag));			//function to signal actual status with status led

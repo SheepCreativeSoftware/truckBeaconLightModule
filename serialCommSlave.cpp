@@ -36,8 +36,9 @@ uint8_t TxEnablePin;				// Pin to switch between Transmit and Receive
 uint16_t errorCount;				// Count each invalid signal
 HardwareSerial* SerialPort;			// Serial Port for communication
 
-uint8_t lightDataFromSerial;		// Holds Light data in Binary
-uint16_t servoMicrosFromSerial[2];	// Holds Servo Microseconds
+uint32_t lightStateFromSerial;		// Holds Light data in Binary
+uint16_t globalEffectStateFromSerial;	// Holds Global Effect data in Binary
+uint16_t servoMicrosFromSerial[6];	// Holds Servo Microseconds
 uint32_t lastValidPackage = 0;		// Time since last valid package over serial
 
 void serialConfigure(HardwareSerial *_SerialPort,	// Serial interface on arduino
@@ -84,10 +85,20 @@ uint16_t serialUpdate() {
 
 				// Function 1 is Light information data which has only one byte
 				if(function == FUNC_LIGHT_DATA) { 
-					lightDataFromSerial = frame[1];
-				} else if (function == FUNC_SERVO) {
-					servoMicrosFromSerial[0] = ((frame[1] << 8) | frame[2]); // combine the servo bytes
-					servoMicrosFromSerial[1] = ((frame[3] << 8) | frame[4]); // combine the servo bytes
+					// 1 byte function + 4 byte lightState + 2 byte effectState +
+					// 9 byte ServoData (12bit) + 2 bytes CRC => 18 bytes total
+					lightStateFromSerial = ((uint32_t)frame[1])        |
+											((uint32_t)frame[2] << 8)  |
+											((uint32_t)frame[3] << 16) |
+											((uint32_t)frame[4] << 24);
+					globalEffectStateFromSerial = ((uint16_t)frame[5]) | 
+													((uint16_t)frame[6] << 8); // combine the effectState bytes
+					servoMicrosFromSerial[0] = ((uint16_t)frame[7] << 4) | (frame[8] >> 4);                // First 8 bits of servo 1 + top 4 bits
+					servoMicrosFromSerial[1] = ((uint16_t)(frame[8] & 0x0F) << 8) | frame[9];              // Last 4 bits of servo 1's byte + last 8 bits of servo 2
+					servoMicrosFromSerial[2] = ((uint16_t)frame[10] << 4) | (frame[11] >> 4);              // First 8 bits of servo 3 + top 4 bits
+					servoMicrosFromSerial[3] = ((uint16_t)(frame[11] & 0x0F) << 8) | frame[12];            // Last 4 bits of servo 3's byte + last 8 bits of servo 4
+					servoMicrosFromSerial[4] = ((uint16_t)frame[13] << 4) | (frame[14] >> 4);              // First 8 bits of servo 5 + top 4 bits
+					servoMicrosFromSerial[5] = ((uint16_t)(frame[14] & 0x0F) << 8) | frame[15];            // Last 4 bits of servo 5's byte + last 8 bits of servo 6
 				}
 				lastValidPackage = millis();
 
@@ -103,9 +114,14 @@ uint16_t serialUpdate() {
 	
 	// Reset everything if no valid package was there
 	if((millis() - lastValidPackage) >= (uint16_t)MAX_TIME_SIGNAL) {
-		lightDataFromSerial = 0;
-		servoMicrosFromSerial[0] = 0;
-		servoMicrosFromSerial[1] = 0;
+		lightStateFromSerial = BIT_HAZARD_LIGHT;
+		globalEffectStateFromSerial = 0;
+		servoMicrosFromSerial[0] = 1024;
+		servoMicrosFromSerial[1] = 1024;
+		servoMicrosFromSerial[2] = 1024;
+		servoMicrosFromSerial[3] = 1024;
+		servoMicrosFromSerial[4] = 1024;
+		servoMicrosFromSerial[5] = 1024;
 	}
 	return errorCount;
 }
@@ -137,10 +153,10 @@ uint16_t calculateCRC(uint8_t bufferSize) {
 	7 -> dimm light
 */
 
-bool getLightData(uint8_t lightOption) {
-	return (lightDataFromSerial >> lightOption) & 0x1; // Shift the requested bit to the first position and return this bit by bitwise AND operation
+uint32_t getLightState() {
+	return lightStateFromSerial;
 }
 
-uint16_t getServoData(uint8_t servoOption) {
-	return servoMicrosFromSerial[servoOption]; // directly put out value from master
+uint16_t getGlobalEffectState() {
+	return globalEffectStateFromSerial;
 }

@@ -16,10 +16,12 @@
  * If not, see <https://www.gnu.org/licenses/>.
  ************************************/
 
-#ifndef _SERIAL_COMM_SLAVE_H_
-#define _SERIAL_COMM_SLAVE_H_
+#pragma once
 
 #include "Arduino.h"							// Add base lib
+#include "./src/config/light-mode.h"
+#include "./src/config/input-config.h"
+#include "./src/config/global-effects-config.h"
 
 // Strings for use in getLightData() for better reading
 #define PARKLIGHT 0
@@ -39,7 +41,5 @@ void serialConfigure(HardwareSerial *_SerialPort,	// Serial interface on arduino
 					uint8_t _TxEnablePin		// Pin to switch between Transmit and Receive
 );
 uint16_t calculateCRC(uint8_t bufferSize);		// Calculate CRC based on buffersize
-bool getLightData(uint8_t lightOption);			// Get Light State from Serial Interface
-uint16_t getServoData(uint8_t servoOption);		// Get Servo State from Serial Interface
-
-#endif
+uint32_t getLightState();			// Get Light State from Serial Interface
+uint16_t getGlobalEffectState();		// Get Global Effect State from Serial Interface
